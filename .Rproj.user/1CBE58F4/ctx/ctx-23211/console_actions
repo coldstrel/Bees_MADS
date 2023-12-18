@@ -1,0 +1,16 @@
+{
+    "type": [
+        2,
+        2,
+        0,
+        1,
+        2
+    ],
+    "data": [
+        "\nR version 4.3.1 (2023-06-16 ucrt) -- \"Beagle Scouts\"\nCopyright (C) 2023 The R Foundation for Statistical Computing\nPlatform: x86_64-w64-mingw32/x64 (64-bit)\n\nR es un software libre y viene sin GARANTIA ALGUNA.\nUsted puede redistribuirlo bajo ciertas circunstancias.\nEscriba 'license()' o 'licence()' para detalles de distribucion.\n\nR es un proyecto colaborativo con muchos contribuyentes.\nEscriba 'contributors()' para obtener más información y\n'citation()' para saber cómo citar R o paquetes de R en publicaciones.\n\n",
+        "Escriba 'demo()' para demostraciones, 'help()' para el sistema on-line de ayuda,\no 'help.start()' para abrir el sistema de ayuda HTML con su navegador.\nEscriba 'q()' para salir de R.\n\n",
+        "> ",
+        "renv::init()",
+        "The following package(s) will be updated in the lockfile:\n\n# CRAN -----------------------------------------------------------------------\n- renv   [* -> 1.0.3]\n\nThe version of R recorded in the lockfile will be updated:\n- R      [* -> 4.3.1]\n\n- Lockfile written to \"~/R Projects/Bees/renv.lock\".\n\nRestarting R session...\n\n"
+    ]
+}
