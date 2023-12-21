@@ -9,6 +9,7 @@ Load Libraries
 
 ```{r}
 library(ggplot2)
+library(ggpubr)
 library(tidyverse)
 library(forcats)
 ```
@@ -16,6 +17,9 @@ library(forcats)
 Loading Bee Data from TidyTuesday
 
 ```{r}
+
+## Data from "https://usda.library.cornell.edu/concern/publications/rn301137d?locale=en"
+
 colony <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-11/colony.csv')
 colony
 ```
@@ -23,10 +27,10 @@ colony
 Number of Bees by year in US
 
 ```{r}
+
 colony |>
-  group_by(months) |>
-  summarise(n = colony_lost) |>
-  arrange(desc(n))
+  filter(state == "United States")
+ 
   
 ```
 
@@ -34,10 +38,11 @@ colony |>
 
 ```{r}
 colony |>
-  ggplot(aes(x=colony_max)) +
+  filter(state == "United States") |>
+  ggplot(aes(colony_n)) +
   geom_density() + 
   scale_x_log10()+
-  labs(title = 'United States', subtitle = 'Bees colonies max',
+  labs(title = 'United States', subtitle = 'Bees colonies',
        y = '', x = '')
 
 ## Change plot type so it can show useful information, maybe a box plot
@@ -62,15 +67,63 @@ colony |>
 ```
 
 ```{r}
-colony |> 
-  filter(year == 2019) |>
-  ggplot(aes(x= log(colony_reno),y=log(colony_lost)))+
+#Correlation test
+
+# Shapiro-Wilk normality test for mpg
+shapiro.test(colony$colony_lost) # => p =  2.2e-16
+# Shapiro-Wilk normality test for wt
+shapiro.test(colony$colony_added) # => p = 2.2e-16
+
+cor.test(colony$colony_lost, colony$colony_added,  method = "spearman")
+
+clean_data <- na.omit(colony)
+lm(colony_lost ~ colony_added, data=colony) |> summary()
+lm(colony_lost ~ colony_added, data=clean_data) |> summary() 
+mean(colony$colony_lost, na.rm = TRUE) ## 16551.32
+mean(colony$colony_added, na.rm = TRUE) ## 17243.2
+
+t.test(colony$colony_added, colony$colony_lost,  method = "pearson", use = "complete.obs")
+```
+
+```{r}
+clean_data |> 
+  filter(year != 2021) |>
+  ggplot(aes(x=colony_lost ,y=colony_added))+
+  scale_x_log10() +
   geom_point() +
-  stat_smooth(geom = 'line',se = TRUE, alpha = 0.7 ) +
-  labs(title = "Colony recuperation over lost 2019", x = 'Colonies renovated', y = 'Colonies lost', subtitle = 'Number of bees', color = 'Months') +
-  theme(legend.position = "none")
+  geom_smooth(alpha = 0.7, fullrange = TRUE ) +
+  labs(title = "Colony renovation over lost by year", x = 'Colonies lost', y = 'Colonies renovated', subtitle = 'Number of bees', color = 'Months') +
+  theme(legend.position = "none") +
+  facet_wrap(~year)
 
 ##Normalize the data so it can represent something else,  maybe plot only by month there are libraries like a tangent something
+```
+
+```{r}
+#violin plot
+colony |>
+  filter(year != 2021) |>
+  ggplot(aes(x = colony_lost,y = colony_added, fill = year)) +
+  geom_violin(trim = FALSE)+
+  scale_y_log10() +
+  facet_wrap(~year) +
+  theme(legend.position = "none")
+  
+```
+
+```{r}
+library(corrplot)
+library(RColorBrewer)
+
+numerical_data <- colony %>%
+  select(-year)|>
+  filter(na.rm=TRUE) |>
+  select_if(is.numeric)
+
+
+M <- cor(numerical_data)
+
+corrplot(M, method = 'circle')
 ```
 
 Adding Stressors
@@ -88,14 +141,15 @@ origins_lost$stressor <- factor(origins_lost$stressor)
 
 sum_stressors <- origins_lost |>
   group_by(stressor) |>
-  summarise( pct_stressor = sum(stress_pct, na.rm = TRUE)/1000)
+  summarise( pct_stressor = mean(stress_pct, na.rm = TRUE)) |>
+  group_by(stressor = ifelse(stressor %in% c("Other", "Unknown"), "Other", as.character(stressor))) %>%
+  summarize(pct_stressor = sum(pct_stressor))
 
 
 sum_stressors %>%
-  filter(stressor != "Unknown", stressor != "Other") |>
   ggplot(aes(x = fct_rev(fct_reorder(stressor, pct_stressor)), y = pct_stressor)) +
   geom_col(aes(fill = pct_stressor)) +
-  labs(title = "Causes of death in bees colonies", subtitle = " % Stressors", y="", x ="" ) +
+  labs(title = "Causes of death in bees colonies", y="", x ="" , caption = "Mean of causes of death") +
   theme(legend.position = "none")
   
 ```
@@ -160,7 +214,8 @@ states|>
 ```{r}
 # Top 10 states with most bees colonies
 top_10_colonies <- colonies_max |>
-  top_n(colony_total, n = 10)
+  arrange(desc(colony_total)) |>
+  head(10)
 
 ggplot(data = world) +
     geom_sf(data = states) +
@@ -178,6 +233,29 @@ temp_15_20 <- temperatures |>
   filter(Country == "US", Year == (2020:2015)) |>
   group_by(State) |>
   inner_join(usa, join_by(State == state))
+
+temp_clean <- temp_15_20 |>
+  select(State, Year, AvgTemperature)|>
+  group_by(State, Year) |>
+  summarise(AvgTem = mean(AvgTemperature)) |>
+  inner_join(usa, join_by(State == state))
+
+temp_2019 <- temp_clean |>
+  filter(Year == 2019) |>
+  mutate(temp_c = (AvgTem-32) *(5/9) )
+
+top_10_temp_2019 <- temp_2019 |>
+  arrange(desc(temp_c))
+
+ggplot(data = world) +
+    geom_sf(data = states) +
+    geom_point(data = top_10_temp_2019, aes(x = longitude, y = latitude, size = temp_c),color="orange", alpha = 0.9) +
+  coord_sf(xlim = c(-130, -60), ylim = c(20, 60), expand = FALSE)
+
+
+## ADD a map with the states loss most bees and add a relation with the temperatures
+ 
+
 
 kdeout <- temp_15_20 %>% 
   with( 
