@@ -70,7 +70,7 @@ states|>
 
 ```
 
----
+------------------------------------------------------------------------
 
 ### 10 states with most bees colonies
 
@@ -89,7 +89,7 @@ ggplot() +
   labs(size = "Colonies",x='',y='')
 ```
 
----
+------------------------------------------------------------------------
 
 ### 10 states with less bees colonies
 
@@ -108,7 +108,7 @@ ggplot() +
   labs(size = "Colonies",x='',y='')
 ```
 
----
+------------------------------------------------------------------------
 
 ### Bees colonies by year on USA
 
@@ -125,7 +125,7 @@ colony |>
   scale_y_continuous(labels = scales::label_number(suffix=" M", scale = 1e-6)) 
 ```
 
-----
+------------------------------------------------------------------------
 
 ### Causes of death in bees colonies
 
@@ -146,7 +146,7 @@ sum_stressors %>%
   theme(legend.position = "none")
 ```
 
-------------
+------------------------------------------------------------------------
 
 ### Bees lost by bimester
 
@@ -167,7 +167,7 @@ colony |>
    scale_y_continuous(labels = scales::label_number(suffix=" K", scale = 1e-3))
 ```
 
----
+------------------------------------------------------------------------
 
 ## States with most bees lost
 
