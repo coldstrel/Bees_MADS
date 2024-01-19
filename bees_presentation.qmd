@@ -91,19 +91,19 @@ ggplot() +
 
 ---
 
-### 10 states with most bees lost
+### 10 states with less bees colonies
 
 ```{r}
-top_10_lost <- colonies_max |>
+top_10_less <- colonies_max |>
   arrange(colony_lost_t) |>
   head(10)
 
 ## Show the 10 states with less bees
 ggplot() +
     geom_sf(data = states) +
-    geom_point(data = top_10_lost, aes(x = longitude, y = latitude, size = colony_lost_t),shape = "\U1F41D") +
+    geom_point(data = top_10_less, aes(x = longitude, y = latitude, size = colony_lost_t),shape = "\U1F41D") +
   coord_sf(xlim = c(-130, -60), ylim = c(20, 60), expand = FALSE) +
-  geom_text_repel(data = top_10_lost, aes(longitude, latitude,label = state)) +
+  geom_text_repel(data = top_10_less, aes(longitude, latitude,label = state)) +
   scale_size_continuous(labels = scales::label_number_si(scale=1e-3,suffix = 'K')) +
   labs(size = "Colonies",x='',y='')
 ```
@@ -158,7 +158,7 @@ colony |>
   filter(year != 2021)|>
   group_by(year, months) |>
   summarise(sum_lost = sum(colony_lost, na.rm = TRUE))|>
-  ggplot(aes(x = fct_rev(fct_reorder(months,sum_lost)) ,y=sum_lost)) +
+  ggplot(aes(x = fct_rev(fct_reorder(months,sum_lost)) ,y=sum_lost)) + ## I didnt find a solution here to get it in an order way
   facet_wrap(~year)+
   geom_col(aes(fill = sum_lost)) +
   theme(legend.position = "none")+
@@ -167,31 +167,22 @@ colony |>
    scale_y_continuous(labels = scales::label_number(suffix=" K", scale = 1e-3))
 ```
 
-## Colony renovation over lost by year
+---
+
+## States with most bees lost
 
 ```{r}
 clean_data <- na.omit(colony)
 
+top_10_lost <- colonies_max |>
+  arrange(desc(colony_lost_t)) |>
+  head(10)
+
 top_10_lost |> 
-  #filter(year != 2021) |>
-  #filter(state == "California")|>
-  ggplot(aes(x=colony_lost_t ,y=colony_added_t))+
-  scale_x_log10() +
-  geom_point() +
-  geom_smooth(alpha = 0.7, fullrange = TRUE ) +
-  labs(x = 'Colonies lost', y = 'Colonies renovated', color = 'Months') +
+  ggplot(aes(y=colony_lost_t ,x=fct_rev(fct_reorder(state,colony_lost_t))))+
+  geom_col(alpha = 0.7, fullrange = TRUE, aes(fill = state) ) +
+  labs(y = 'N. Colonies', x='') +
   theme(legend.position = "none") +
-  facet_wrap(~state)
-```
-
-------------------------------------------------------------------------
-
-```{r}
-colony |>
-  filter(year != 2021) |>
-  ggplot(aes(x = colony_lost,y = colony_added, fill = year)) +
-  geom_boxplot(trim = FALSE)+
-  scale_x_log10() +
-  facet_wrap(~year) +
-  theme(legend.position = "none")
+    theme(axis.text.x = element_text(angle = 45,vjust = 0.5)) +
+   scale_y_continuous(labels = scales::label_number(suffix=" M", scale = 1e-6))
 ```
