@@ -12,6 +12,11 @@ library(ggplot2)
 library(ggpubr)
 library(tidyverse)
 library(forcats)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("ggrepel")
+library(sf)
+library(mapview)
 ```
 
 Loading Bee Data from TidyTuesday
@@ -41,7 +46,7 @@ colony |>
   filter(state == "United States") |>
   ggplot(aes(colony_n)) +
   geom_density() + 
-  scale_x_log10()+
+  #scale_x_log10()+
   labs(title = 'United States', subtitle = 'Bees colonies',
        y = '', x = '')
 
@@ -192,12 +197,8 @@ colonies_max
 ```
 
 ```{r}
-library(sf)
-library(mapview)
 colonies_max 
-library("rnaturalearth")
-library("rnaturalearthdata")
-library("ggrepel")
+
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
 states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
@@ -217,9 +218,27 @@ top_10_colonies <- colonies_max |>
   arrange(desc(colony_total)) |>
   head(10)
 
+top_10_colonies
+
 ggplot(data = world) +
     geom_sf(data = states) +
     geom_point(data = top_10_colonies, aes(x = longitude, y = latitude, size = colony_total/1000),color="#635e0c", alpha = 0.6) +
+  coord_sf(xlim = c(-130, -60), ylim = c(20, 60), expand = FALSE) +
+  geom_text_repel(data = top_10_colonies, aes(longitude, latitude,label = state), nudge_x = c(3, 2, 2, 2, -1), nudge_y = c(0.25,-0.25, 0.5, 0.5, -0.5)) +
+  labs(title = "10 states with most bees colonies", size = "Colony (thousands)",x='',y='')
+
+```
+
+```{r}
+## Top 10 colonies lost
+
+top_10_lost <- colonies_max |>
+  arrange(desc(colony_lost_t)) |>
+  head(10)
+
+ggplot() +
+    geom_sf(data = states) +
+    geom_point(data = top_10_lost, aes(x = longitude, y = latitude, size = colony_lost_t/1000),color="#635e0c", alpha = 0.6) +
   coord_sf(xlim = c(-130, -60), ylim = c(20, 60), expand = FALSE) +
   geom_text_repel(data = top_10_colonies, aes(longitude, latitude,label = state), nudge_x = c(3, 2, 2, 2, -1), nudge_y = c(0.25,-0.25, 0.5, 0.5, -0.5)) +
   labs(title = "10 states with most bees colonies", size = "Colony (thousands)",x='',y='')
@@ -235,8 +254,8 @@ temp_15_20 <- temperatures |>
   inner_join(usa, join_by(State == state))
 
 temp_clean <- temp_15_20 |>
-  select(State, Year, AvgTemperature)|>
-  group_by(State, Year) |>
+  select(State, Year, AvgTemperature, Month)|>
+  group_by(State, Year, Month) |>
   summarise(AvgTem = mean(AvgTemperature)) |>
   inner_join(usa, join_by(State == state))
 
@@ -276,12 +295,48 @@ ggplot() +
 ```
 
 ```{r}
+
+top_10_colonies_lost <- colonies_percent |>
+  arrange(desc(lost_pct)) |>
+  head(10)
+
+
+
+```
+
+```{r}
 #Top 10 states with most bees loses %
 
 top_10_colonies_lost <- colonies_percent |>
-  top_n(lost_pct, n = 10)
+  arrange(desc(lost_pct)) |>
+  head(10)
 
-top_10_colonies_lost
+top10_cold <- temp_2019 |>
+  arrange(desc(temp_c)) |>
+  head(10)
+  
+
+
+ggplot() +
+    geom_sf(data = states) +
+    geom_point(data = top10_cold, aes(x = longitude, y = latitude, size = temp_c),color="red", alpha = 0.9) +
+  geom_point(data = top_10_colonies_lost, aes(x = longitude, y = latitude, size = lost_pct),color="black", alpha = 0.3) +
+  coord_sf(xlim = c(-130, -60), ylim = c(20, 60), expand = FALSE)
+
+
+
+temp_c <- temp_clean |>
+  mutate(temp_c = (AvgTem-32) *(5/9))
+
+temp_c |>
+  filter(Year != 2021) |>
+  group_by(Year) |>
+  summarise(temp_act = mean(temp_c,na.rm=TRUE)) |>
+  ggplot(aes(x=Year, y=temp_act))+
+  geom_line(color="blue") 
+  
+
+
 
 
 ggplot() +
