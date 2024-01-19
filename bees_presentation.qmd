@@ -30,7 +30,8 @@ usa <- readr::read_csv('data/states.csv')
 ## Number of Bees Colonies in USA
 
 ```{r}
-## Move this to first part
+## Get the colonies totals for lost, added and final
+# Not incluiding Hawaii
 colonies_max <- colony |>
   filter(state != "Hawaii") |>
   select(state,colony_n, colony_lost, colony_added) |>
@@ -40,7 +41,7 @@ colonies_max <- colony |>
          colony_added_t = sum(colony_added, na.rm = TRUE)) |>
   inner_join(usa, join_by(state == state))
 
-
+## Getting the percentage for the colonies
 colonies_percent <- colony |>
   select(state, colony_n, colony_lost_pct, colony_reno_pct) |>
   group_by(state) |>
@@ -54,10 +55,11 @@ states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
 ```
 
 ```{r}
-#colonies_max 
+#Get the data from datasets to plot USA maps
 world <- ne_countries(scale = "medium", returnclass = "sf")
 states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
 
+# Use the unicode for the bees, also using a geom_point for the bees
 states|>
     ggplot() +
     geom_sf() +
@@ -77,14 +79,14 @@ top_10_colonies <- colonies_max |>
   arrange(desc(colony_total)) |>
   head(10)
 
-#top_10_colonies
+# Get the top 10 states with more bees, and change the scales for Millions
 
 ggplot() +
     geom_sf(data = states) +
     geom_point(data = top_10_colonies, aes(x = longitude, y = latitude, size = colony_total),shape = "\U1F41D") +
   coord_sf(xlim = c(-130, -60), ylim = c(20, 60), expand = FALSE) +
   geom_text_repel(data = top_10_colonies, aes(longitude, latitude,label = state), nudge_x = c(3, 2, 2, 2, -1), nudge_y = c(0.25,-0.25, 0.5, 0.5, -0.5)) +scale_size_continuous(labels = scales::label_number_si(scale = 1e-6, suffix = " M"))+
-  labs(size = "Colony (thousands)",x='',y='')
+  labs(size = "Colonies",x='',y='')
 ```
 
 ---
@@ -96,6 +98,7 @@ top_10_lost <- colonies_max |>
   arrange(colony_lost_t) |>
   head(10)
 
+## Show the 10 states with less bees
 ggplot() +
     geom_sf(data = states) +
     geom_point(data = top_10_lost, aes(x = longitude, y = latitude, size = colony_lost_t),shape = "\U1F41D") +
@@ -110,7 +113,7 @@ ggplot() +
 ### Bees colonies by year on USA
 
 ```{r}
-
+## Plot in which year there were lees
 colony |>
   filter(year != 2021) |>
   filter(state == "United States") |>
@@ -145,30 +148,23 @@ sum_stressors %>%
 
 ------------
 
-### Bees Colonies on 2019
+### Bees lost by bimester
 
 ```{r}
-colony |>
-  filter(year == 2019) |>
-  filter(state != "United States") |>
-  mutate(colony_losses = colony_n-colony_lost,
-         colony_a_r = colony_losses + colony_added)|>
-  relocate(colony_losses,colony_a_r) |>
-  arrange(desc(colony_losses))
-  
-  
+colony$months <-factor(colony$months) 
 
 colony |>
-  filter(year == 2019) |>
-  mutate(colony_n_max = sum(colony_n,na.rm=TRUE),
-         colony_lost_n = sum(colony_lost, na.rm = TRUE),
-         colony_added_n = sum(colony_added, na.rm = TRUE)) |>
-  relocate(colony_n_max, colony_lost_n) |>
-  ggplot() +
-  geom_line(aes(x=year, y=colony_n_max),color="blue") +
-  geom_line(aes(x=year, y= colony_lost_n), color = "red")+
-  geom_line(aes(x=year, y=colony_added_n),  color="darkgreen")+
-  labs(title = "Bees colonies by year", x = '',y='Bees count') 
+  filter(state != "United States") |>
+  filter(year != 2021)|>
+  group_by(year, months) |>
+  summarise(sum_lost = sum(colony_lost, na.rm = TRUE))|>
+  ggplot(aes(x = fct_rev(fct_reorder(months,sum_lost)) ,y=sum_lost)) +
+  facet_wrap(~year)+
+  geom_col(aes(fill = sum_lost)) +
+  theme(legend.position = "none")+
+  labs(x ="", y="") +
+  theme(axis.text.x = element_text(angle = 90)) +
+   scale_y_continuous(labels = scales::label_number(suffix=" K", scale = 1e-3))
 ```
 
 ## Colony renovation over lost by year
