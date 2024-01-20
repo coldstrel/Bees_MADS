@@ -8,4 +8,4 @@ corresponding to the bees colonies and the stressor that causes deaths on them.
 The Bees.qmd file will have the test, explorations before doing the presentation which corresponds to the "bees_presentation.qmd"
 
 To view the presentation, clic the link which is saved on github pages 
-[Bees Url](https://coldstrel.github.io/Bees_MADS/bees_presentation.html)
+[Bees Project](https://coldstrel.github.io/Bees_MADS/bees_presentation.html)
