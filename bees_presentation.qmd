@@ -150,7 +150,7 @@ sum_stressors %>%
 
 ### Bees lost by bimester
 
-```{r}
+```{r, echo=FALSE}
 colony$months <-factor(colony$months) 
 
 colony |>
@@ -180,7 +180,7 @@ top_10_lost <- colonies_max |>
 
 top_10_lost |> 
   ggplot(aes(y=colony_lost_t ,x=fct_rev(fct_reorder(state,colony_lost_t))))+
-  geom_col(alpha = 0.7, fullrange = TRUE, aes(fill = state) ) +
+  geom_col(aes(fill = state),fill = "#468bfa" ) +
   labs(y = 'N. Colonies', x='') +
   theme(legend.position = "none") +
     theme(axis.text.x = element_text(angle = 45,vjust = 0.5)) +

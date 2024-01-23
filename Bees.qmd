@@ -34,9 +34,7 @@ Number of Bees by year in US
 ```{r}
 
 colony |>
-  filter(state == "United States")
- 
-  
+  filter(year == 2019)
 ```
 
 ## Density by state
@@ -58,7 +56,7 @@ colony |>
 ```{r}
 
 colony |>
-  filter(year == 2020) |>
+  filter(year == 2019) |>
   select(year, colony_max)
 
 colony |>
