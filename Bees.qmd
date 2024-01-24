@@ -33,8 +33,7 @@ Number of Bees by year in US
 
 ```{r}
 
-colony |>
-  filter(year == 2019)
+colony
 ```
 
 ## Density by state

@@ -1,5 +1,6 @@
 ---
-title: "Bees Colonies in USA"
+title: "Honey bees Colonies in USA"
+subtitle: "🐝"
 author: "Aldo FERNANDEZ"
 format: revealjs
 editor: visual
@@ -26,6 +27,15 @@ colony <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tid
 origins_lost <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-11/stressor.csv')
 usa <- readr::read_csv('data/states.csv')
 ```
+
+## Honey Bee colonies
+- Years 2015-2021
+- 1,222 observations
+- Source: tidytuesday
+  - https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-11/colony.csv
+  - https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-11/stressor.csv
+
+
 
 ## Number of Bees Colonies in USA
 
